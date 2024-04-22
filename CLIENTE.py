@@ -24,6 +24,7 @@ class ChatClient:
 
         self.message_entry = tk.Entry(self.message_frame)
         self.message_entry.pack(side=tk.LEFT)
+        self.message_entry.bind("<Return>", self.send_on_enter)  # Evento Enter
 
         self.send_button = tk.Button(self.message_frame, text="Enviar", command=self.send_message)
         self.send_button.pack(side=tk.LEFT)
@@ -37,11 +38,17 @@ class ChatClient:
         self.receive_thread = threading.Thread(target=self.receive_message)
         self.receive_thread.start()
 
-    def send_message(self):
+    def send_message(self, event=None):  # Adicionamos event=None para permitir chamadas sem eventos
         username = self.username_entry.get()
         message = self.message_entry.get()
+
+        # Adiciona a mensagem no chat do remetente
+        self.chat_text.insert(tk.END, f"Você: {message}\n")
+        self.chat_text.see(tk.END)  # Rolagem automática para a nova mensagem
+
         message = f'{len(message)}:{username}:{message}'
         self.client.send(message.encode('utf-8'))
+        self.message_entry.delete(0, tk.END)  # Limpa o campo de entrada após o envio
 
     def receive_message(self):
         while True:
@@ -51,6 +58,9 @@ class ChatClient:
             except Exception as e:
                 print(f"[ERRO] Ocorreu um erro: {e}")
                 break
+
+    def send_on_enter(self, event):
+        self.send_message()
 
 if __name__ == "__main__":
     root = tk.Tk()
